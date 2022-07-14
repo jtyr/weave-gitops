@@ -1,0 +1,62 @@
+---
+title: Progressive Delivery using Flagger
+hide_title: true
+sidebar_position: 6
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Progressive Delivery using Flagger <TierLabel tiers="enterprise" />
+
+WGE includes the ability to view Flagger canary object information in the UI.
+
+## Installing Flagger using Flux
+
+This guide uses Flux manifests to install Flagger. To begin, add the following `HelmRepository` manifest to your cluster repository:
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: flagger
+  namespace: flux-system
+spec:
+  interval: 1h
+  url: https://flagger.app
+```
+
+This manifest makes the Flagger Helm repository available in your cluster. To install Flagger, add the following `HelmRelease` manifest:
+
+```yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: flagger
+  namespace: flux-system
+spec:
+  releaseName: flagger
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  interval: 1h
+  chart:
+    spec:
+      chart: flagger
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: flagger
+        namespace: flux-system
+  values:
+    meshProvider: istio
+    prometheus:
+      install: true
+```
+
+This manifest installs the latest version of Flagger using the Helm repository that was added previously. In this case, Flagger is configured to work with Istio service mesh. [Other providers](https://docs.flagger.app/usage/deployment-strategies) may also be used instead of Istio to integrate with Flagger. Flagger's Helm chart can also be configured to install Prometheus in the same namespace, if it is not already available.
+
+:::note EXISTING PROMETHEUS INSTALLATION
+
+If Prometheus is already available in your environment, make sure that Istio has been configured to expose its metrics to the Prometheus instance that Flagger will use. You can use the Prometheus UI to check if metric `istio_requests_total` is available to determine if Istio has been configured correctly.
+

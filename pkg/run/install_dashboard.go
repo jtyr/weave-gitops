@@ -3,15 +3,11 @@ package run
 import (
 	"context"
 	"fmt"
-	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -30,9 +26,8 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.K
 	fmt.Println(string(secret))
 
 	log.Actionf("Installing GitOps Dashboard ...")
-	manifests := createManifests(string(secret))
 
-	fmt.Println(manifests)
+	manifests := createManifests(string(secret))
 
 	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, manifests)
 	if err != nil {
@@ -86,101 +81,101 @@ spec:
 	return content
 }
 
-func createHelmRepository() *sourcev1.HelmRepository {
-	helmRepository := &sourcev1.HelmRepository{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ww-gitops",
-			Namespace: "flux-system",
-		},
-		Spec: sourcev1.HelmRepositorySpec{
-			URL: "https://helm.gitops.weave.works",
-			Interval: metav1.Duration{
-				Duration: time.Minute,
-			},
-		},
-	}
+// func createHelmRepository() *sourcev1.HelmRepository {
+// 	helmRepository := &sourcev1.HelmRepository{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Name:      "ww-gitops",
+// 			Namespace: "flux-system",
+// 		},
+// 		Spec: sourcev1.HelmRepositorySpec{
+// 			URL: "https://helm.gitops.weave.works",
+// 			Interval: metav1.Duration{
+// 				Duration: time.Minute,
+// 			},
+// 		},
+// 	}
 
-	// helmRepository := &sourcev1.HelmRepository{
-	// 	ObjectMeta: metav1.ObjectMeta{
-	// 		Name:      name,
-	// 		Namespace: "",
-	// 		Labels:    map[string]string{},
-	// 	},
-	// 	Spec: sourcev1.HelmRepositorySpec{
-	// 		URL: sourceHelmArgs.url,
-	// 		Interval: metav1.Duration{
-	// 			Duration: createArgs.interval,
-	// 		},
-	// 	},
-	// }
+// 	// helmRepository := &sourcev1.HelmRepository{
+// 	// 	ObjectMeta: metav1.ObjectMeta{
+// 	// 		Name:      name,
+// 	// 		Namespace: "",
+// 	// 		Labels:    map[string]string{},
+// 	// 	},
+// 	// 	Spec: sourcev1.HelmRepositorySpec{
+// 	// 		URL: sourceHelmArgs.url,
+// 	// 		Interval: metav1.Duration{
+// 	// 			Duration: createArgs.interval,
+// 	// 		},
+// 	// 	},
+// 	// }
 
-	return helmRepository
-}
+// 	return helmRepository
+// }
 
-func createHelmRelease(passwordHash string) *helmv2.HelmRelease {
-	helmRelease := &helmv2.HelmRelease{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ww-gitops",
-			Namespace: "flux-system",
-		},
-		Spec: helmv2.HelmReleaseSpec{
-			Interval: metav1.Duration{
-				Duration: time.Minute,
-			},
-			Chart: helmv2.HelmChartTemplate{
-				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:   "weave-gitops",
-					Version: "2.0.6",
-					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: "HelmRepository",
-						Name: "ww-gitops",
-					},
-					ReconcileStrategy: "ChartVersion",
-				},
-			},
-			Suspend: false,
-		},
-	}
+// func createHelmRelease(passwordHash string) *helmv2.HelmRelease {
+// 	helmRelease := &helmv2.HelmRelease{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Name:      "ww-gitops",
+// 			Namespace: "flux-system",
+// 		},
+// 		Spec: helmv2.HelmReleaseSpec{
+// 			Interval: metav1.Duration{
+// 				Duration: time.Minute,
+// 			},
+// 			Chart: helmv2.HelmChartTemplate{
+// 				Spec: helmv2.HelmChartTemplateSpec{
+// 					Chart:   "weave-gitops",
+// 					Version: "2.0.6",
+// 					SourceRef: helmv2.CrossNamespaceObjectReference{
+// 						Kind: "HelmRepository",
+// 						Name: "ww-gitops",
+// 					},
+// 					ReconcileStrategy: "ChartVersion",
+// 				},
+// 			},
+// 			Suspend: false,
+// 		},
+// 	}
 
-	// helmRelease := helmv2.HelmRelease{
-	// 	ObjectMeta: metav1.ObjectMeta{
-	// 		Name:      name,
-	// 		Namespace: *kubeconfigArgs.Namespace,
-	// 		Labels:    sourceLabels,
-	// 	},
-	// 	Spec: helmv2.HelmReleaseSpec{
-	// 		ReleaseName: helmReleaseArgs.name,
-	// 		DependsOn:   utils.MakeDependsOn(helmReleaseArgs.dependsOn),
-	// 		Interval: metav1.Duration{
-	// 			Duration: createArgs.interval,
-	// 		},
-	// 		TargetNamespace: helmReleaseArgs.targetNamespace,
+// 	// helmRelease := helmv2.HelmRelease{
+// 	// 	ObjectMeta: metav1.ObjectMeta{
+// 	// 		Name:      name,
+// 	// 		Namespace: *kubeconfigArgs.Namespace,
+// 	// 		Labels:    sourceLabels,
+// 	// 	},
+// 	// 	Spec: helmv2.HelmReleaseSpec{
+// 	// 		ReleaseName: helmReleaseArgs.name,
+// 	// 		DependsOn:   utils.MakeDependsOn(helmReleaseArgs.dependsOn),
+// 	// 		Interval: metav1.Duration{
+// 	// 			Duration: createArgs.interval,
+// 	// 		},
+// 	// 		TargetNamespace: helmReleaseArgs.targetNamespace,
 
-	// 		Chart: helmv2.HelmChartTemplate{
-	// 			Spec: helmv2.HelmChartTemplateSpec{
-	// 				Chart:   helmReleaseArgs.chart,
-	// 				Version: helmReleaseArgs.chartVersion,
-	// 				SourceRef: helmv2.CrossNamespaceObjectReference{
-	// 					Kind:      helmReleaseArgs.source.Kind,
-	// 					Name:      helmReleaseArgs.source.Name,
-	// 					Namespace: helmReleaseArgs.source.Namespace,
-	// 				},
-	// 				ReconcileStrategy: helmReleaseArgs.reconcileStrategy,
-	// 			},
-	// 		},
-	// 		Suspend: false,
-	// 	},
-	// }
+// 	// 		Chart: helmv2.HelmChartTemplate{
+// 	// 			Spec: helmv2.HelmChartTemplateSpec{
+// 	// 				Chart:   helmReleaseArgs.chart,
+// 	// 				Version: helmReleaseArgs.chartVersion,
+// 	// 				SourceRef: helmv2.CrossNamespaceObjectReference{
+// 	// 					Kind:      helmReleaseArgs.source.Kind,
+// 	// 					Name:      helmReleaseArgs.source.Name,
+// 	// 					Namespace: helmReleaseArgs.source.Namespace,
+// 	// 				},
+// 	// 				ReconcileStrategy: helmReleaseArgs.reconcileStrategy,
+// 	// 			},
+// 	// 		},
+// 	// 		Suspend: false,
+// 	// 	},
+// 	// }
 
-	return helmRelease
-}
+// 	return helmRelease
+// }
 
-func createValues(secret string) string {
-	return fmt.Sprintf(`
-  values:
-    adminUser:
-      create: true
-      passwordHash: "%s"
-      username: admin
-	`, secret)
-}
+// func createValues(secret string) string {
+// 	return fmt.Sprintf(`
+//   values:
+//     adminUser:
+//       create: true
+//       passwordHash: "%s"
+//       username: admin
+// 	`, secret)
+// }

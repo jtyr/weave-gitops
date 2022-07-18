@@ -53,11 +53,11 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 		}
 
 		changeSet.Append(cs.Entries)
-	}
 
-	if err := waitForSet(log, ctx, kubeClient, kubeConfigArgs, changeSet); err != nil {
-		log.Failuref("Error waiting for set")
-		return "", err
+		if err := waitForSet(log, ctx, kubeClient, kubeConfigArgs, changeSet); err != nil {
+			log.Failuref("Error waiting for set")
+			return "", err
+		}
 	}
 
 	if len(stageTwo) > 0 {
